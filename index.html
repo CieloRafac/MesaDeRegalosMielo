@@ -569,16 +569,13 @@ async function cargarProductos() {
       const modos = (row["Regalo"]||"").toLowerCase().split(";").map(x=>x.trim()).filter(Boolean);
       const enlace = row["Enlace"] || "";
       const desc = row["Descripción"] || "";
-      // Imagen: si SKU_Imagen es un URL directo, usarlo; si no, extraer del enlace
+      // Imagen: si SKU_Imagen tiene valor, construir URL desde GitHub Pages
       let img = "";
       const skuImg = row["SKU_Imagen"] || "";
       if (skuImg.startsWith("http")) {
-        img = skuImg;
+        img = skuImg; // URL directa
       } else if (skuImg) {
-        img = falabellaImg(skuImg);
-      } else {
-        const mFal = enlace.match(/falabella\.com\.pe\/[^/]+\/product\/([^/]+)\/[^/]+\/([^/?]+)/);
-        if (mFal) img = falabellaImg(mFal[2] + "_01");
+        img = `https://cielorafac.github.io/MesaDeRegalosMielo/${skuImg}`;
       }
       PRODUCTOS.push([cod, nombre, precio, tipo, favorito, modos, enlace, desc, img]);
     });
