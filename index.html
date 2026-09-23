@@ -56,9 +56,23 @@ body { font-family: var(--font-b); background: var(--crema); color: #2d2d2d; min
   padding: 28px 20px;
 }
 @media(max-width: 768px) {
-  .main-wrap { grid-template-columns: 1fr; }
-  .sidebar { order: 2; }
-  .catalog-wrap { order: 1; }
+  .main-wrap { grid-template-columns: 1fr; padding: 16px; gap: 16px; }
+  .sidebar { order: 1; }
+  .catalog-wrap { order: 2; }
+  .grid { grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 12px; }
+  .hero { padding: 32px 16px 28px; }
+  .hero h1 { font-size: 42px; }
+  .modal { padding: 20px 16px; }
+  .modal-opts { flex-direction: column; gap: 8px; }
+  .btn-modal-opt { padding: 12px; }
+  .aporte-btns { gap: 6px; }
+  .btn-pct { font-size: 11px; padding: 6px 4px; }
+  .card-body { padding: 10px 12px; }
+  .card-title { font-size: 15px; }
+  .card-price { font-size: 17px; }
+  .btn-elegir { padding: 7px 14px; font-size: 12px; }
+  .filtros { gap: 6px; }
+  .btn-filtro { font-size: 12px; padding: 7px 12px; }
 }
 
 /* ── SIDEBAR ── */
@@ -107,8 +121,32 @@ body { font-family: var(--font-b); background: var(--crema); color: #2d2d2d; min
 .btn-copy:hover { background: #e8d8c0; }
 
 /* ── FILTROS ── */
+.filtros-wrap {
+  display: flex; align-items: flex-start; gap: 12px; margin-bottom: 20px; flex-wrap: wrap;
+}
 .filtros {
-  display: flex; gap: 8px; margin-bottom: 20px; flex-wrap: wrap;
+  display: flex; gap: 8px; flex-wrap: wrap; flex: 1;
+}
+.orden-wrap {
+  flex-shrink: 0;
+}
+.select-orden {
+  padding: 9px 14px; border-radius: 999px;
+  border: 2px solid var(--verde-md);
+  background: var(--blanco); color: var(--verde);
+  font-family: var(--font-b); font-size: 13px; font-weight: 600;
+  cursor: pointer; outline: none; appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%234e7a4e' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  padding-right: 32px;
+  transition: border-color .18s;
+}
+.select-orden:hover { border-color: var(--verde); }
+@media(max-width: 768px) {
+  .filtros-wrap { flex-direction: column; gap: 8px; }
+  .orden-wrap { width: 100%; }
+  .select-orden { width: 100%; }
 }
 .btn-filtro {
   padding: 9px 18px; border-radius: 999px;
@@ -438,11 +476,22 @@ body { font-family: var(--font-b); background: var(--crema); color: #2d2d2d; min
 
   <!-- CATÁLOGO -->
   <div class="catalog-wrap">
-    <div class="filtros">
-      <button class="btn-filtro active" data-f="todos" onclick="setFiltro(this)">Todos</button>
-      <button class="btn-filtro" data-f="cielo" onclick="setFiltro(this)">⭐ Favoritos de Cielo</button>
-      <button class="btn-filtro" data-f="miguel" onclick="setFiltro(this)">⭐ Favoritos de Miguel</button>
-      <button class="btn-filtro" data-f="disponibles" onclick="setFiltro(this)">✅ Disponibles</button>
+    <div class="filtros-wrap">
+      <div class="filtros">
+        <button class="btn-filtro active" data-f="todos" onclick="setFiltro(this)">Todos</button>
+        <button class="btn-filtro" data-f="cielo" onclick="setFiltro(this)">⭐ Cielo</button>
+        <button class="btn-filtro" data-f="miguel" onclick="setFiltro(this)">⭐ Miguel</button>
+        <button class="btn-filtro" data-f="disponibles" onclick="setFiltro(this)">✅ Disponibles</button>
+        <button class="btn-filtro" data-f="aporte" onclick="setFiltro(this)">🪙 Aportar al Pozo</button>
+        <button class="btn-filtro" data-f="compra" onclick="setFiltro(this)">🛍️ Comprar directo</button>
+      </div>
+      <div class="orden-wrap">
+        <select class="select-orden" onchange="setOrden(this.value)">
+          <option value="default">Ordenar por...</option>
+          <option value="precio-asc">Precio: menor a mayor</option>
+          <option value="precio-desc">Precio: mayor a menor</option>
+        </select>
+      </div>
     </div>
     <div class="grid" id="grid"></div>
     <p class="empty" id="empty" style="display:none">✨ No hay productos en este filtro.</p>
@@ -693,6 +742,7 @@ const BACKEND = "https://script.google.com/macros/s/AKfycbw1y2wRCgIffItiC4jOm4pm
 
 /* ══ ESTADO ══ */
 let filtro = "todos";
+let orden = "default";
 let aportes = {};   // cod -> monto acumulado
 let comprados = new Set();
 let currentCod = null;
@@ -721,16 +771,26 @@ function setFiltro(btn){
   render();
 }
 
+function setOrden(val){
+  orden = val;
+  render();
+}
+
 /* ══ RENDER ══ */
 function render(){
   const grid = document.getElementById("grid");
   const empty = document.getElementById("empty");
-  const lista = PRODUCTOS.filter(p => {
+  let lista = PRODUCTOS.filter(p => {
     if(filtro === "cielo") return p[4].includes("cielo");
     if(filtro === "miguel") return p[4].includes("miguel");
     if(filtro === "disponibles") return !comprados.has(p[0]) && (aportes[p[0]]||0) < p[2];
+    if(filtro === "aporte") return p[5].includes("aporte");
+    if(filtro === "compra") return p[5].includes("compra");
     return true;
   });
+  // Ordenar
+  if(orden === "precio-asc") lista = [...lista].sort((a,b) => a[2] - b[2]);
+  if(orden === "precio-desc") lista = [...lista].sort((a,b) => b[2] - a[2]);
   empty.style.display = lista.length ? "none" : "block";
   grid.innerHTML = lista.map(p => {
     const cod = p[0], precio = p[2], tipo = p[3];
