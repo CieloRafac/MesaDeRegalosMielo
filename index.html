@@ -546,7 +546,7 @@ body { font-family: var(--font-b); background: var(--crema); color: #2d2d2d; min
       </div>
 
       <div class="nombre-wrap">
-        <input type="text" class="nombre-input" id="nombreInput" placeholder="Tu nombre (para que sepamos quién eres 💚)">
+        <input type="text" class="nombre-input" id="nombreInput" placeholder="Tu nombre * (obligatorio)">
       </div>
 
       <div class="nota-wrap">
@@ -570,7 +570,7 @@ body { font-family: var(--font-b); background: var(--crema); color: #2d2d2d; min
       </div>
 
       <div class="nombre-wrap">
-        <input type="text" class="nombre-input" id="nombreCompraInput" placeholder="Tu nombre (para que sepamos quién eres 💚)">
+        <input type="text" class="nombre-input" id="nombreCompraInput" placeholder="Tu nombre * (obligatorio)">
       </div>
 
       <div class="nota-wrap">
@@ -870,6 +870,7 @@ function closeModal(){
   currentCod = null; panelActivo = null;
 }
 document.getElementById("backdrop").addEventListener("click", e => { if(e.target===e.currentTarget) closeModal(); });
+document.getElementById("nombreInput").addEventListener("input", evalConfirm);
 
 function showPanel(panel){
   panelActivo = panel;
@@ -936,7 +937,9 @@ function onFile(){
 }
 
 function evalConfirm(){
-  const ok = currentMonto > 0 && document.getElementById("uploadZone").classList.contains("done");
+  const ok = currentMonto > 0 
+    && document.getElementById("uploadZone").classList.contains("done")
+    && document.getElementById("nombreInput").value.trim() !== "";
   document.getElementById("btnConfirmAporte").disabled = !ok;
 }
 
@@ -946,7 +949,14 @@ async function confirmarAporte(){
   const cod = currentCod;
   const monto = currentMonto;
   const p = PRODUCTOS.find(x=>x[0]===cod);
-  const nombre = document.getElementById("nombreInput").value.trim() || "Invitado";
+  const nombre = document.getElementById("nombreInput").value.trim();
+  if(!nombre){ 
+    document.getElementById("nombreInput").focus();
+    document.getElementById("nombreInput").style.borderColor = "var(--bordo)";
+    toast("Por favor escribe tu nombre 💚", 2500);
+    return;
+  }
+  document.getElementById("nombreInput").style.borderColor = "";
   const nota = document.getElementById("notaInput").value.trim();
   const capturaEl = document.getElementById("uploadPrev");
   const capturaSrc = capturaEl ? capturaEl.src : "";
@@ -1006,7 +1016,14 @@ async function confirmarCompra(){
   // Guardar ANTES de closeModal que pone currentCod = null
   const cod = currentCod;
   const p = PRODUCTOS.find(x=>x[0]===cod);
-  const nombre = document.getElementById("nombreCompraInput").value.trim() || "Invitado";
+  const nombre = document.getElementById("nombreCompraInput").value.trim();
+  if(!nombre){
+    document.getElementById("nombreCompraInput").focus();
+    document.getElementById("nombreCompraInput").style.borderColor = "var(--bordo)";
+    toast("Por favor escribe tu nombre 💚", 2500);
+    return;
+  }
+  document.getElementById("nombreCompraInput").style.borderColor = "";
   const nota = document.getElementById("notaCompraInput").value.trim();
 
   comprados.add(cod);
