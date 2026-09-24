@@ -446,7 +446,7 @@ body { font-family: var(--font-b); background: var(--crema); color: #2d2d2d; min
     <p class="hero-eyebrow">¡Nos casamos!</p>
     <h1>Miguel &amp; Cielo</h1>
     <p class="hero-sub">24 de octubre, 2026 &nbsp;·&nbsp; Villa Magnolia, Pachacamac</p>
-    <p class="hero-intro">Una pequeña lista de cosas que soñamos tener en esta nueva etapa.</p>
+    <p class="hero-intro">Ayúdanos a construir nuestro hogar de Mielitos.</p>
   </div>
 </header>
 
@@ -459,8 +459,8 @@ body { font-family: var(--font-b); background: var(--crema); color: #2d2d2d; min
       <h3>¿Cómo funciona? 🎉</h3>
       <p><span class="emoji">🔍</span> <strong>Filtra</strong> los regalos por favoritos de Cielo, favoritos de Miguel, o los que siguen disponibles.</p>
       <p><span class="emoji">🛍️</span> <strong>Comprar directamente:</strong> ve a la tienda, compra el producto y envíalo a nuestra dirección. ¡Así de fácil!</p>
-      <p><span class="emoji">🪙</span> <strong>Aportar al Pozo:</strong> si algún regalo es muy grande, puedes poner tu granito de arena y sumarte con varios amigos. Nos ayudará a convertir poquito a poquito nuestra casita en hogar. 🏡🤍</p>
-      <p><span class="emoji">💬</span> ¡No olvides dejarnos un mensajito de amor/locura o lo que se te ocurra! jaja</p>
+      <p><span class="emoji">🪙</span> <strong>Aportar al Pozo:</strong> si el regalo es grande, puedes poner tu granito de arena y sumarte con varios amigos. Cada sol cuenta 💚</p>
+      <p><span class="emoji">💬</span> ¡No olvides dejarnos un mensajito de amor, locura o lo que se te ocurra! jaja</p>
     </div>
 
     <div class="card-dir">
@@ -469,7 +469,7 @@ body { font-family: var(--font-b); background: var(--crema); color: #2d2d2d; min
         Jr. Larrabure y Unanue 146<br>
         Dpto. 602 · Cercado de Lima
       </address>
-      <p style="font-size:12px;color:#777;margin-top:6px;">A nombre de: <strong>Miguel Pasco</strong></p>
+      <p style="font-size:12px;color:#777;margin-top:6px;">A nombre de: <strong>Miguel Pasco</strong> o <strong>Cielo Rafael</strong></p>
       <button class="btn-copy" onclick="copiarDir()">📋 Copiar dirección</button>
     </div>
   </aside>
@@ -563,7 +563,7 @@ body { font-family: var(--font-b); background: var(--crema); color: #2d2d2d; min
         <div class="dir-box">
           <div class="dir-label">📦 Dirección de entrega</div>
           <address>Jr. Larrabure y Unanue 146, Dpto. 602<br>Cercado de Lima · Lima</address>
-          <p class="nombre">A nombre de: <strong>Miguel Pasco</strong></p>
+          <p class="nombre">A nombre de: <strong>Miguel Pasco</strong> o <strong>Cielo Rafael</strong></p>
         </div>
         <button class="btn-copiar-dir" onclick="copiarDir()">📋 Copiar dirección</button>
         <a class="btn-ir-tienda" id="btnIrTienda" href="#" target="_blank" rel="noopener">Ir a la tienda ↗</a>
@@ -758,7 +758,7 @@ function toast(msg, ms=3500){
   setTimeout(()=>t.classList.remove("show"), ms);
 }
 function copiarDir(){
-  navigator.clipboard.writeText("Jr. Larrabure y Unanue 146, Dpto. 602, Cercado de Lima. A nombre de: Miguel Pasco")
+  navigator.clipboard.writeText("Jr. Larrabure y Unanue 146, Dpto. 602, Cercado de Lima. A nombre de: Miguel Pasco o Cielo Rafael")
     .then(()=>toast("📋 Dirección copiada"))
     .catch(()=>toast("Copia: Jr. Larrabure y Unanue 146, Dpto. 602, Cercado de Lima"));
 }
@@ -808,7 +808,7 @@ function render(){
         <div class="card-foot">
           <span class="card-price">${fmt(precio)}</span>
           <button class="btn-elegir" onclick="openModal('${cod}')" ${comprado?'disabled':''}>
-            ${comprado ? '✓ Listo' : soloAporte ? 'Aportar' : 'Elegir'}
+            ${comprado ? '¡Regalado! 🎁' : soloAporte ? 'Aportar' : 'Elegir'}
           </button>
         </div>
       </div>
@@ -1003,11 +1003,13 @@ async function confirmarAporte(){
 
 async function confirmarCompra(){
   if(!currentCod) return;
-  const p = PRODUCTOS.find(x=>x[0]===currentCod);
+  // Guardar ANTES de closeModal que pone currentCod = null
+  const cod = currentCod;
+  const p = PRODUCTOS.find(x=>x[0]===cod);
   const nombre = document.getElementById("nombreCompraInput").value.trim() || "Invitado";
   const nota = document.getElementById("notaCompraInput").value.trim();
 
-  comprados.add(currentCod);
+  comprados.add(cod);
   closeModal();
   toast(`🎁 ¡Gracias ${nombre}! "${p[1]}" está en camino.`, 4000);
   render();
@@ -1019,7 +1021,7 @@ async function confirmarCompra(){
       redirect: "follow",
       body: JSON.stringify({
         accion: "compra",
-        cod: currentCod,
+        cod: cod,
         producto: p[1],
         monto: p[2],
         nombre: nombre,
