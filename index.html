@@ -446,7 +446,7 @@ body { font-family: var(--font-b); background: var(--crema); color: #2d2d2d; min
     <p class="hero-eyebrow">¡Nos casamos!</p>
     <h1>Miguel &amp; Cielo</h1>
     <p class="hero-sub">24 de octubre, 2026 &nbsp;·&nbsp; Villa Magnolia, Pachacamac</p>
-    <p class="hero-intro">Ayúdanos a construir nuestro hogar de Mielitos.</p>
+    <p class="hero-intro">Una pequeña lista de cosas que soñamos tener en esta nueva etapa.</p>
   </div>
 </header>
 
@@ -639,13 +639,18 @@ async function cargarProductos() {
 }
 
 async function cargarRegalosSheet() {
-  // Paso 1: cargar totales desde TSV de Productos (siempre funciona)
   try {
-    const r = await fetch(TSV_PRODUCTOS + "&t=" + Date.now());
-    const rows = parseTSV(await r.text());
+    // Los dos TSVs en paralelo — más rápido que secuencial
+    const [r1, r2] = await Promise.all([
+      fetch(TSV_PRODUCTOS + "&t=" + Date.now()),
+      fetch(TSV_REGALOS + "&t=" + Date.now())
+    ]);
+
+    // Totales desde Productos
+    const rowsP = parseTSV(await r1.text());
     aportes = {};
     comprados = new Set();
-    rows.forEach(row => {
+    rowsP.forEach(row => {
       const cod = row["COD"];
       if (!cod) return;
       const total = parseFloat(row["Total acumulado"]) || 0;
@@ -653,17 +658,20 @@ async function cargarRegalosSheet() {
       if (total > 0) aportes[cod] = total;
       if (total >= costo && costo > 0) comprados.add(cod);
     });
-  } catch(e) {
-    console.warn("Error cargando totales:", e);
-  }
 
-  // Paso 2: cargar nombres desde Apps Script (independiente — si falla, igual renderea)
-  try {
-    const r2 = await fetch(BACKEND + "?t=" + Date.now(), {method: "GET", redirect: "follow"});
-    const data = await r2.json();
-    if (data.nombres) nombres = data.nombres;
+    // Nombres desde Regalos
+    const rowsR = parseTSV(await r2.text());
+    nombres = {};
+    rowsR.forEach(row => {
+      const cod = String(row["COD"] || "").trim();
+      const nombre = String(row["Invitado"] || "").trim();
+      if (!cod || !nombre || cod.startsWith("TEST")) return;
+      if (!nombres[cod]) nombres[cod] = [];
+      if (!nombres[cod].includes(nombre)) nombres[cod].push(nombre);
+    });
+
   } catch(e) {
-    console.warn("Error cargando nombres:", e);
+    console.warn("Error cargando datos:", e);
   }
 }
 
