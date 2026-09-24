@@ -639,10 +639,9 @@ async function cargarProductos() {
 }
 
 async function cargarRegalosSheet() {
-  // Leer el acumulado directamente desde la hoja Productos (columna Total acumulado)
-  // El Apps Script lo actualiza ahí cada vez que llega un aporte
+  // Paso 1: cargar totales desde TSV de Productos (siempre funciona)
   try {
-    const r = await fetch(TSV_PRODUCTOS + "&t=" + Date.now()); // cache bust
+    const r = await fetch(TSV_PRODUCTOS + "&t=" + Date.now());
     const rows = parseTSV(await r.text());
     aportes = {};
     comprados = new Set();
@@ -655,7 +654,16 @@ async function cargarRegalosSheet() {
       if (total >= costo && costo > 0) comprados.add(cod);
     });
   } catch(e) {
-    console.warn("Error cargando acumulados:", e);
+    console.warn("Error cargando totales:", e);
+  }
+
+  // Paso 2: cargar nombres desde Apps Script (independiente — si falla, igual renderea)
+  try {
+    const r2 = await fetch(BACKEND + "?t=" + Date.now(), {method: "GET", redirect: "follow"});
+    const data = await r2.json();
+    if (data.nombres) nombres = data.nombres;
+  } catch(e) {
+    console.warn("Error cargando nombres:", e);
   }
 }
 
