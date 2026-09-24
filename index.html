@@ -816,6 +816,14 @@ function render(){
         <div class="card-prog-bar-wrap"><div class="card-prog-bar" style="width:${pct}%"></div></div>
         <p class="card-prog-label">Aportado: ${fmt(acum)} de ${fmt(precio)}</p>
       </div>` : ''}
+      ${(()=>{
+        const lista = nombres[cod] || [];
+        if(!lista.length) return '';
+        const texto = lista.length === 1
+          ? `¡Gracias <strong>${lista[0]}</strong>!`
+          : `¡Gracias <strong>${lista.slice(0,-1).join('</strong>, <strong>')}</strong> y <strong>${lista[lista.length-1]}</strong>!`;
+        return `<div class="card-gracias">💚 ${texto}</div>`;
+      })()}
     </div>`;
   }).join("");
 }
